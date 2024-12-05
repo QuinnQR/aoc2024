@@ -5,7 +5,39 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
+void readRules(
+            std::ifstream &file,
+            std::array<std::array<bool, 100>, 100> &ruleArray)
+{
+    std::string line;
+    int a, c;
+    char b;
+    while (std::getline(file, line))
+    {
+        std::istringstream lineStream(line);
+        // If the line is empty then there are no more rules to read
+        if (line.size() == 0)
+            return;
+        lineStream >> a >> b >> c;
+        ruleArray[a][c] = true;
+    }
+}
+void readUpdates(std::ifstream &file, std::vector<std::vector<int>> &updateVec)
+{
+    std::string line;
+    while (std::getline(file, line))
+    {
+        std::istringstream lineStream(line);
+        std::vector<int> update;
+        for (int i; lineStream >> i;)
+        {
+            update.push_back(i);
+            if (lineStream.peek() == ',')
+                lineStream.ignore();
+        }
+        updateVec.push_back(update);
+    }
+}
 int main()
 {
     std::ifstream file{"./input"};
@@ -14,33 +46,10 @@ int main()
     std::string line;
     std::istringstream lineStream;
     std::memset(&rules[0], 0, sizeof(rules));
-    int a, c;
-    char b;
-
-    while (std::getline(file, line))
-    {
-        // Detects the newline between the rules and the updates
-        if (line.size() == 0)
-            break;
-        lineStream = std::istringstream(line);
-        lineStream >> a >> b >> c;
-        // If rules[x][y] is true, then x is before y
-        rules[a][c] = true;
-    }
-    while (std::getline(file, line))
-    {
-        lineStream = std::istringstream(line);
-        std::vector<int> update;
-        for (; lineStream >> a;)
-        {
-            update.push_back(a);
-            if (lineStream.peek() == ',')
-                lineStream.ignore();
-        }
-        updates.push_back(update);
-    }
     int result = 0;
     int result2 = 0;
+    readRules(file, rules);
+    readUpdates(file, updates);
     for (auto &update : updates)
     {
         bool valid = true;
@@ -52,7 +61,7 @@ int main()
                 {
                     valid = false;
                     std::swap(update[j], update[i]);
-                    // Reset j so that j++ is i+1.
+                    // Reset j so that j++ is i+1 again
                     j = i;
                 }
             }
