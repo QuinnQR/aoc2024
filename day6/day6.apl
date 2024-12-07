@@ -1,4 +1,4 @@
-data  ← ↑⊃⎕NGET '/home/qqr/code/aoc/2024/day6/input' 1
+data  ← ↑⊃⎕NGET './input' 1
 startCoord ← ⍸'^'⍷data
 data  ← {⍵='#':¯1 ⋄ ≢data}¨data
 ⍝ Up, Right, Down, Left (Note: order of rotation)

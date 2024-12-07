@@ -1,5 +1,5 @@
 
-    data  ← ↑⊃⎕NGET '/home/qqr/code/aoc/2024/day6/input' 1
+    data  ← ↑⊃⎕NGET './input' 1
     start ← ⍸'^'⍷data
 
     parse ← {⍵='.':0 ⋄ ⍵='#':¯1 ⋄ ⍵='^':0}
