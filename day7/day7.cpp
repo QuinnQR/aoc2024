@@ -48,9 +48,7 @@ struct Context
     num_t target;
     // Moving next, end out of args and into context made it a little faster.
     // Probably not actually worth the decrease in readability, honestly.
-    it_t next;
-    it_t end;
-    ReturnType recurse(num_t acc)
+    ReturnType recurse(num_t acc, it_t next, it_t end)
     {
         if (next == end)
             return {(target == acc)};
@@ -58,27 +56,21 @@ struct Context
         bool foundConcat = false;
         if ((calculation = acc + *next) <= target)
         {
-            next++;
-            ReturnType found = recurse(calculation);
-            next--;
+            ReturnType found = recurse(calculation, next + 1, end);
             if (found.foundNoConcat)
                 return found;
             foundConcat |= found.foundConcat;
         }
         if ((calculation = acc * *next) <= target)
         {
-            next++;
-            ReturnType found = recurse(calculation);
-            next--;
+            ReturnType found = recurse(calculation, next + 1, end);
             if (found.foundNoConcat)
                 return found;
             foundConcat |= found.foundConcat;
         }
         if ((calculation = concatenate(acc, *next)) <= target)
         {
-            next++;
-            ReturnType found = recurse(calculation);
-            next--;
+            ReturnType found = recurse(calculation, next + 1, end);
             foundConcat |= found.foundConcat;
         }
         return {false, foundConcat};
@@ -95,9 +87,9 @@ std::pair<num_t, num_t> recurseBatch(std::vector<Equation> equations)
     for (auto eq : equations)
     {
         context.target = eq.target;
-        context.next = eq.operands.begin() + 1;
-        context.end = eq.operands.end();
-        ReturnType ret = context.recurse(eq.operands.front());
+        ReturnType ret = context.recurse(
+                    eq.operands.front(), eq.operands.begin() + 1,
+                    eq.operands.end());
         if (ret.foundNoConcat)
         {
             result1 += eq.target;

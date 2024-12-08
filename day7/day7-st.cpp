@@ -37,9 +37,7 @@ struct ReturnType
 struct Context
 {
     num_t target;
-    it_t next;
-    it_t end;
-    ReturnType recurse(num_t acc)
+    ReturnType recurse(num_t acc, it_t next, it_t end)
     {
         if (next == end)
             return {(target == acc)};
@@ -47,27 +45,21 @@ struct Context
         bool foundConcat = false;
         if ((calculation = acc + *next) <= target)
         {
-            next++;
-            ReturnType found = recurse(calculation);
-            next--;
+            ReturnType found = recurse(calculation, next + 1, end);
             if (found.foundNoConcat)
                 return found;
             foundConcat |= found.foundConcat;
         }
         if ((calculation = acc * *next) <= target)
         {
-            next++;
-            ReturnType found = recurse(calculation);
-            next--;
+            ReturnType found = recurse(calculation, next + 1, end);
             if (found.foundNoConcat)
                 return found;
             foundConcat |= found.foundConcat;
         }
         if ((calculation = concatenate(acc, *next)) <= target)
         {
-            next++;
-            ReturnType found = recurse(calculation);
-            next--;
+            ReturnType found = recurse(calculation, next + 1, end);
             foundConcat |= found.foundConcat;
         }
         return {false, foundConcat};
@@ -101,9 +93,8 @@ int main(int argc, char **argv)
             operands.push_back(i);
         }
 
-        context.next = operands.begin() + 1;
-        context.end = operands.end();
-        auto rv = context.recurse(operands.front());
+        auto rv = context.recurse(
+                    operands.front(), operands.begin() + 1, operands.end());
         if (rv.foundConcat)
         {
             result2 += context.target;
