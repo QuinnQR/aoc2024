@@ -1,3 +1,4 @@
+CXXFLAGS+=-O3
 %: %.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@.out
 clean:
