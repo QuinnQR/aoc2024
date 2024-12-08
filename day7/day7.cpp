@@ -46,6 +46,8 @@ struct ReturnType
 struct Context
 {
     num_t target;
+    // Moving next, end out of args and into context made it a little faster.
+    // Probably not actually worth the decrease in readability, honestly.
     it_t next;
     it_t end;
     ReturnType recurse(num_t acc)
@@ -147,7 +149,8 @@ int main(int argc, char **argv)
     }
     if (batch.size() > 0)
     {
-        returnVector.push_back(std::async(&recurseBatch, std::move(batch)));
+        returnVector.push_back(std::async(
+                    std::launch::async, &recurseBatch, std::move(batch)));
     }
     num_t result1 = 0;
     num_t result2 = 0;
