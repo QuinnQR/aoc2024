@@ -31,7 +31,7 @@ struct Context
         nRows    = rows;
         topology = heightMap;
     }
-    bool inBounds(int x, int y)
+    inline bool inBounds(int x, int y)
     {
         return 0 <= x && 0 <= y && x < nCols && y < nRows;
     }
