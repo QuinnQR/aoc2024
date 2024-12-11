@@ -83,8 +83,10 @@ num_t part1(const std::vector<DigitInterval> &digitIntervals,
             digitInterval = *digitIntervalIt;
         }
     }
+    resultPart1 += getCheckSum(digitInterval);
     // Add the checksum of all unmoved regions
-    for (; digitIntervalIt != digitIntervals.rend(); digitIntervalIt++)
+    for (digitIntervalIt++; digitIntervalIt != digitIntervals.rend();
+         digitIntervalIt++)
         resultPart1 += getCheckSum(*digitIntervalIt);
 
     return resultPart1;
@@ -99,6 +101,7 @@ num_t part2(const std::vector<DigitInterval> &digitIntervals,
         resultPart2 += getCheckSum(digitInterval);
 
     // Maintain a cache so early spaces can be skipped as they are likely full.
+    // This cache goes up to wherever
     num_t maxWidthInCache = 0;
     int cachedSpaceIdx    = 0;
     for (int digitIdx = digitIntervals.size() - 1; digitIdx > 0; digitIdx--)
@@ -116,7 +119,6 @@ num_t part2(const std::vector<DigitInterval> &digitIntervals,
         for (; spaceIdx < digitIdx; spaceIdx++)
         {
             num_t spaceWidth = width(spaceIntervals[spaceIdx]);
-            maxWidthInCache  = std::max(maxWidthInCache, spaceWidth);
             if (spaceWidth >= digitWidth)
             {
                 // The space is large enough; move file to spaceIdx.
@@ -125,8 +127,11 @@ num_t part2(const std::vector<DigitInterval> &digitIntervals,
                 resultPart2 -= getCheckSum(digitIntervals[digitIdx].start,
                                            digitWidth, digitIdx);
                 spaceIntervals[spaceIdx].start += digitWidth;
+                maxWidthInCache                 = std::max(maxWidthInCache,
+                                                           spaceWidth - digitWidth);
                 break;
             }
+            maxWidthInCache = std::max(maxWidthInCache, spaceWidth);
         }
         cachedSpaceIdx = spaceIdx;
     }
