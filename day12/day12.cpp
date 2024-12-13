@@ -3,66 +3,77 @@
 #include <sstream>
 #include <vector>
 
-struct Context
+class Context
 {
+  private:
+    std::string flagArray;
     std::string data;
+
+  public:
     std::string originalData;
+
     int nCols, nRows;
-    const char up = 1, right = 2, down = 4, left = 8;
+    enum edgeFlags : char
+    {
+        UP    = 0b0001,
+        RIGHT = 0b0010,
+        DOWN  = 0b0100,
+        LEFT  = 0b1000
+    };
     inline bool inBounds(int x, int y)
     {
         return 0 <= x && 0 <= y && x < nCols && y < nRows;
     }
     inline int toIdx(int x, int y) { return x + y * nCols; }
-    int getEdges(int x, int y, char target, std::string &edgeFlags)
+    int getEdges(int x, int y, char target)
     {
         char edgeFlag = 0;
         int edgeCount = 0;
         if (!inBounds(x - 1, y) || originalData[toIdx(x - 1, y)] != target)
         {
-            edgeFlag  |= left;
-            edgeCount += 2;
+            edgeFlag  |= LEFT;
+            edgeCount += 1;
             if (inBounds(x, y - 1) && originalData[toIdx(x, y - 1)] == target)
-                if (edgeFlags[toIdx(x, y - 1)] & left)
-                    edgeCount -= 2;
+                if (flagArray[toIdx(x, y - 1)] & LEFT)
+                    edgeCount -= 1;
             if (inBounds(x, y + 1) && originalData[toIdx(x, y + 1)] == target)
-                if (edgeFlags[toIdx(x, y + 1)] & left)
-                    edgeCount -= 2;
+                if (flagArray[toIdx(x, y + 1)] & LEFT)
+                    edgeCount -= 1;
         }
         if (!inBounds(x + 1, y) || originalData[toIdx(x + 1, y)] != target)
         {
-            edgeFlag  |= right;
-            edgeCount += 2;
+            edgeFlag  |= RIGHT;
+            edgeCount += 1;
             if (inBounds(x, y - 1) && originalData[toIdx(x, y - 1)] == target)
-                if (edgeFlags[toIdx(x, y - 1)] & right)
-                    edgeCount -= 2;
+                if (flagArray[toIdx(x, y - 1)] & RIGHT)
+                    edgeCount -= 1;
             if (inBounds(x, y + 1) && originalData[toIdx(x, y + 1)] == target)
-                if (edgeFlags[toIdx(x, y + 1)] & right)
-                    edgeCount -= 2;
+                if (flagArray[toIdx(x, y + 1)] & RIGHT)
+                    edgeCount -= 1;
         }
         if (!inBounds(x, y + 1) || originalData[toIdx(x, y + 1)] != target)
         {
-            edgeFlag  |= down;
-            edgeCount += 2;
+            edgeFlag  |= DOWN;
+            edgeCount += 1;
             if (inBounds(x - 1, y) && originalData[toIdx(x - 1, y)] == target)
-                if (edgeFlags[toIdx(x - 1, y)] & down)
-                    edgeCount -= 2;
+                if (flagArray[toIdx(x - 1, y)] & DOWN)
+                    edgeCount -= 1;
             if (inBounds(x + 1, y) && originalData[toIdx(x + 1, y)] == target)
-                if (edgeFlags[toIdx(x + 1, y)] & down)
-                    edgeCount -= 2;
+                if (flagArray[toIdx(x + 1, y)] & DOWN)
+                    edgeCount -= 1;
         }
         if (!inBounds(x, y - 1) || originalData[toIdx(x, y - 1)] != target)
         {
-            edgeFlag  |= up;
-            edgeCount += 2;
+            edgeFlag  |= UP;
+            edgeCount += 1;
             if (inBounds(x - 1, y) && originalData[toIdx(x - 1, y)] == target)
-                if (edgeFlags[toIdx(x - 1, y)] & up)
-                    edgeCount -= 2;
+                if (flagArray[toIdx(x - 1, y)] & UP)
+                    edgeCount -= 1;
             if (inBounds(x + 1, y) && originalData[toIdx(x + 1, y)] == target)
-                if (edgeFlags[toIdx(x + 1, y)] & up)
-                    edgeCount -= 2;
+                if (flagArray[toIdx(x + 1, y)] & UP)
+                    edgeCount -= 1;
         }
-        edgeFlags[toIdx(x, y)] = edgeFlag;
+        flagArray[toIdx(x, y)] = edgeFlag;
         return edgeCount;
     };
 
@@ -72,8 +83,7 @@ struct Context
         int perimeter = 0;
         int edges     = 0;
         std::vector<std::pair<int, int>> stack;
-        std::string edgeFlags;
-        edgeFlags.resize(data.size());
+
         stack.emplace_back(x, y);
         while (stack.size() > 0)
         {
@@ -109,15 +119,16 @@ struct Context
                     perimeter -= 2;
                     stack.emplace_back(xIdx, yIdx - 1);
                 }
-                data[toIdx(xIdx, yIdx)] = ' ';
-                edges += getEdges(xIdx, yIdx, target, edgeFlags);
+                data[toIdx(xIdx, yIdx)]  = ' ';
+                edges                   += getEdges(xIdx, yIdx, target);
             }
         }
-        std::cout << target << ":\t" << edges / 2 << "\n";
-        return {area * perimeter, area * edges / 2};
+        return {area * perimeter, area * edges};
     }
     std::pair<int, int> getResults()
     {
+        data = originalData;
+        flagArray.resize(data.size());
         std::pair<int, int> result = {0, 0};
         int idx                    = 0;
         for (int y = 0; y < nRows; y++)
@@ -148,9 +159,8 @@ int main()
         nCols = line.size();
         buffer << line;
     }
-    context.data            = buffer.str();
-    int nRows               = context.data.size() / (nCols);
-    context.originalData    = context.data;
+    context.originalData    = buffer.str();
+    int nRows               = context.originalData.size() / (nCols);
     context.nCols           = nCols;
     context.nRows           = nRows;
     auto [result1, result2] = context.getResults();
