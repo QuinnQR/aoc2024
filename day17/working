@@ -1,0 +1,43 @@
+A=??
+OPCODES:
+0: A SHIFT COMBO TO A
+1: B XOR LITERAL
+2: COMBO MOD 8 TO B
+3: J A NZ TO LITERAL
+4: B XOR C TO B
+5: OUT COMBO MOD 8
+6: A SHIFT COMBO TO B
+7: A SHIFT COMBO TO C
+
+COMBOS:
+0,1,2,3 LITERAL
+4 A
+5 B
+6 C
+
+2,4,1,1,7,5,1,5,4,3,5,5,0,3,3,0
+
+2,4
+B = A%8 = L 
+
+1,1
+B=B^1=(A%8)^1 = L^1
+
+7,5
+C=A/(2^B) =A>>B = A  >> (A%8)^1  = A>>L^1
+
+1,5
+B=B^5=(A%8)^4
+
+4,3
+B=B^C=(A%8)^4^(A >> (A%8)^1)
+
+5,5 OUT B
+OUT (A%8)^4^(A>>(A%8)^1)
+
+0,3 ADV
+A>>3
+
+3,0 Jump to zero
+LET L = A%8
+OUT L^4^(A>>L^1)
