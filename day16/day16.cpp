@@ -15,7 +15,8 @@ struct Position
     uint8_t col;
     uint8_t row;
     bool dir;
-    uint8_t pad = 0;
+    // Originally was padded with another uint8_t, but letting the compiler
+    // decide is probably better. GCC used 64 bits either way on my machine.
     Position(uint32_t p_cost, uint8_t p_col, uint8_t p_row, bool p_dir)
     {
         cost = p_cost;
@@ -24,11 +25,11 @@ struct Position
         dir  = p_dir;
     }
 
-    inline uint32_t getIdx(int nCols, int nRows)
+    inline size_t getIdx(int nCols, int nRows)
     {
         return col + nCols * (row + nRows * dir);
     }
-    inline uint16_t getSimpleIdx(int nCols, int nRows = 0)
+    inline size_t getSimpleIdx(int nCols, int nRows = 0)
     {
         // nRows included for parity with getIdx
         return col + nCols * (row);
@@ -82,8 +83,6 @@ Result1 part1(const std::vector<std::string> &data, int nCols, int nRows)
         auto current = heap.top();
         heap.pop();
 
-        if (current.row >= nRows || current.col >= nCols)
-            continue;
         if (data[nRows - current.row - 1][current.col] == '#')
             continue;
         if (visited[current.getIdx(nCols, nRows)] != -1)
@@ -98,16 +97,19 @@ Result1 part1(const std::vector<std::string> &data, int nCols, int nRows)
         current.cost++;
         current.col += !current.dir;
         current.row += current.dir;
-        heap.push(current);
+        if (visited[current.getIdx(nCols, nRows)] == -1)
+            heap.push(current);
         current.col -= !current.dir + !current.dir;
         current.row -= current.dir + current.dir;
-        heap.push(current);
+        if (visited[current.getIdx(nCols, nRows)] == -1)
+            heap.push(current);
 
         current.col  += !current.dir;
         current.row  += current.dir;
         current.cost += 999;
         current.dir   = !current.dir;
-        heap.push(current);
+        if (visited[current.getIdx(nCols, nRows)] == -1)
+            heap.push(current);
     }
     return {0, std::vector<uint32_t>(), Position(0, 0, 0, 0)};
 }
@@ -127,10 +129,6 @@ int part2(const std::vector<std::string> &data, int nCols, int nRows,
         auto current = stack.back();
 
         stack.pop_back();
-        if (current.row >= nRows || current.col >= nCols)
-        {
-            continue;
-        }
         if (data[nRows - current.row - 1][current.col] == '#')
         {
             continue;
