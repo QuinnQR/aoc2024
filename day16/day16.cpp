@@ -83,8 +83,6 @@ Result1 part1(const std::vector<std::string> &data, int nCols, int nRows)
         auto current = heap.top();
         heap.pop();
 
-        if (data[nRows - current.row - 1][current.col] == '#')
-            continue;
         if (visited[current.getIdx(nCols, nRows)] != -1)
             continue;
 
@@ -97,18 +95,22 @@ Result1 part1(const std::vector<std::string> &data, int nCols, int nRows)
         current.cost++;
         current.col += !current.dir;
         current.row += current.dir;
-        if (visited[current.getIdx(nCols, nRows)] == -1)
+        if (visited[current.getIdx(nCols, nRows)] == -1
+            && data[nRows - current.row - 1][current.col] != '#')
+
             heap.push(current);
         current.col -= !current.dir + !current.dir;
         current.row -= current.dir + current.dir;
-        if (visited[current.getIdx(nCols, nRows)] == -1)
+        if (visited[current.getIdx(nCols, nRows)] == -1
+            && data[nRows - current.row - 1][current.col] != '#')
             heap.push(current);
 
         current.col  += !current.dir;
         current.row  += current.dir;
         current.cost += 999;
         current.dir   = !current.dir;
-        if (visited[current.getIdx(nCols, nRows)] == -1)
+        if (visited[current.getIdx(nCols, nRows)] == -1
+            && data[nRows - current.row - 1][current.col] != '#')
             heap.push(current);
     }
     return {0, std::vector<uint32_t>(), Position(0, 0, 0, 0)};
