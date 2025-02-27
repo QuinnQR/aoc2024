@@ -45,6 +45,14 @@ struct ResultPart1
     size_t part1;
     std::vector<pos_t> path;
 };
+
+// Didn't notice much difference between bool and char
+// Tried to eliminate copying by using a uint16_t and having a different id
+// each time find_path is called to mark visited nodes, but the extra
+// conditional seemed to offset any performance gained from fewer copies
+// while making the function less readable.
+typedef std::vector<bool> row_t;
+typedef std::vector<row_t> grid_t;
 class Context
 {
   public:
@@ -56,8 +64,7 @@ class Context
     }
     ResultPart1 part1(int bytes_fallen)
     {
-        std::vector<std::vector<int8_t>> grid(
-                    grid_height, std::vector<int8_t>(grid_width, 1));
+        grid_t grid(grid_height, row_t(grid_width, 1));
         for (int i = 0; i < coordinates.size() && i < bytes_fallen; i++)
         {
             grid[coordinates[i].second][coordinates[i].first] = 0;
@@ -67,8 +74,7 @@ class Context
     }
     std::pair<int, int> part2(int min_bytes, std::vector<pos_t> path)
     {
-        std::vector<std::vector<int8_t>> grid(
-                    grid_height, std::vector<int8_t>(grid_width, 1));
+        grid_t grid(grid_height, row_t(grid_width, 1));
         for (int i = 0; i < coordinates.size() && i < min_bytes - 1; i++)
         {
             grid[coordinates[i].second][coordinates[i].first] = 0;
@@ -88,8 +94,7 @@ class Context
     };
 
   private:
-    std::vector<Node> perform_bfs(
-                const std::vector<std::vector<int8_t>> &const_grid)
+    std::vector<pos_t> get_path(const grid_t &const_grid)
     {
         auto grid          = const_grid;
         size_t queue_front = 0;
@@ -119,20 +124,14 @@ class Context
                 }
             }
         }
-        return node_queue;
-    }
-    std::vector<pos_t> get_path(
-                const std::vector<std::vector<int8_t>> &const_grid)
-    {
-        auto queue = perform_bfs(const_grid);
-        if (queue.back().pos != pos_t{grid_width - 1, grid_height - 1})
+        if (!end_reached)
             return {};
-        size_t path_node_idx = queue.size() - 1;
+        size_t path_node_idx = node_queue.size() - 1;
         std::vector<pos_t> path{};
         while (path_node_idx != SIZE_MAX)
         {
-            path.push_back(queue[path_node_idx].pos);
-            path_node_idx = queue[path_node_idx].prev;
+            path.push_back(node_queue[path_node_idx].pos);
+            path_node_idx = node_queue[path_node_idx].prev;
         }
         return path;
     }
